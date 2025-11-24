@@ -3,74 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>用户登录 - 学习资料共享平台</title>
+    <title>学习资料共享平台</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        .container {
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        
-        .tab {
-            overflow: hidden;
-            border: 1px solid #ccc;
-            background-color: #f1f1f1;
-            border-radius: 5px 5px 0 0;
-        }
-
-        .tab button {
-            background-color: inherit;
-            float: left;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 14px 16px;
-            transition: 0.3s;
-            width: 50%;
-        }
-
-        .tab button:hover {
-            background-color: #ddd;
-        }
-
-        .tab button.active {
-            background-color: #007bff;
+        /* 添加侧边栏样式 */
+        .sidebar {
+            width: 250px;
+            background-color: #333;
             color: white;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 20px 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+            z-index: 1000;
         }
 
-        .tabcontent {
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #555;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .menu-item:hover {
+            background-color: #555;
+        }
+
+        .submenu {
+            padding-left: 30px;
             display: none;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-top: none;
-            border-radius: 0 0 5px 5px;
         }
 
-        .tabcontent.active {
+        .submenu-item {
+            padding: 8px 20px;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        .submenu-item:hover {
+            background-color: #555;
+        }
+
+        .expanded .submenu {
             display: block;
         }
 
-        /* 添加错误提示样式 */
-        .error-message {
-            color: red;
-            font-size: 14px;
-            margin-top: -10px;
-            margin-bottom: 10px;
+        .admin-controls {
+            padding: 20px;
+            border-top: 1px solid #555;
+            margin-top: 20px;
+        }
+
+        .admin-btn {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .admin-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* 调整主内容区域 */
+        main {
+            margin-left: 270px;
+        }
+
+        header {
+            margin-left: 250px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="tab">
-            <button class="tablinks active" onclick="openTab(event, 'login')">登录</button>
-            <button class="tablinks" onclick="openTab(event, 'register')">注册</button>
+    <!-- 添加侧边栏 -->
+    <div class="sidebar">
+        <div class="sidebar-header">目录导航</div>
+        
+        <!-- 核心功能描述 -->
+        <div class="menu-item" id="bookmarkFeature" style="background-color: #007bff; font-weight: bold;">
+            添加书签
+        </div>
+        
+        <!-- 默认菜单项 -->
+        <div class="menu-item expanded">
+            数据结构
+            <div class="submenu">
+                <div class="submenu-item">学习资料</div>
+            </div>
+        </div>
+        
+        <div class="menu-item expanded">
+            四级英语试卷
+            <div class="submenu">
+                <div class="submenu-item">历年真题</div>
+                <div class="submenu-item">模拟试题</div>
+            </div>
+        </div>
+        
+        <div class="menu-item expanded">
+            六级英语试卷
+            <div class="submenu">
+                <div class="submenu-item">历年真题</div>
+                <div class="submenu-item">模拟试题</div>
+            </div>
+        </div>
+        
+        <div class="menu-item expanded">
+            Java基础知识
+            <div class="submenu">
+                <div class="submenu-item">语法基础</div>
+                <div class="submenu-item">面向对象</div>
+            </div>
+        </div>
+        
+        <div class="menu-item expanded">
+            Python基础知识
+            <div class="submenu">
+                <div class="submenu-item">语法基础</div>
+                <div class="submenu-item">数据分析</div>
+            </div>
+        </div>
+        
+        <div class="menu-item expanded">
+            高考数学
+            <div class="submenu">
+                <div class="submenu-item">代数</div>
+                <div class="submenu-item">几何</div>
+            </div>
+        </div>
+        
+        <div class="menu-item expanded">
+            高考物理
+            <div class="submenu">
+                <div class="submenu-item">力学</div>
+                <div class="submenu-item">电磁学</div>
+            </div>
+        </div>
+        
+        <div class="menu-item expanded">
+            高考化学
+            <div class="submenu">
+                <div class="submenu-item">无机化学</div>
+                <div class="submenu-item">有机化学</div>
+            </div>
+        </div>
+        
+        <div class="menu-item expanded">
+            高考语文
+            <div class="submenu">
+                <div class="submenu-item">古诗词</div>
+                <div class="submenu-item">现代文阅读</div>
+            </div>
+        </div>
+        
+        <div class="menu-item expanded">
+            高考生物
+            <div class="submenu">
+                <div class="submenu-item">细胞生物学</div>
+                <div class="submenu-item">遗传学</div>
+            </div>
+        </div>
+        
+        <div class="menu-item expanded">
+            高考英语
+            <div class="submenu">
+                <div class="submenu-item">词汇</div>
+                <div class="submenu-item">阅读理解</div>
+            </div>
+        </div>
+        
+        <div class="menu-item expanded">
+            C++基础知识
+            <div class="submenu">
+                <div class="submenu-item">语法基础</div>
+                <div class="submenu-item">STL库</div>
+            </div>
+        </div>
+        
+        <div class="menu-item expanded">
+            C语言经典题型
+            <div class="submenu">
+                <div class="submenu-item">指针</div>
+                <div class="submenu-item">结构体</div>
+            </div>
         </div>
 
-        <div id="login" class="tabcontent active">
+        <!-- 管理员控制按钮 -->
+        <div class="admin-controls" id="adminControls" style="display: none;">
+            <button class="admin-btn" id="addMenuBtn">添加菜单</button>
+            <button class="admin-btn" id="deleteMenuBtn">删除菜单</button>
+        </div>
+    </div>
+
+    <header>
+        <h1>学习资料共享平台</h1>
+        <nav>
+            <button id="loginBtn">登录</button>
+            <button id="registerBtn">注册</button>
+            <button id="logoutBtn" style="display:none;">退出</button>
+            <span id="userInfo"></span>
+        </nav>
+    </header>
+
+    <main>
+        <section id="fileUploadSection" style="display:none;">
+            <h2>上传文件（仅管理员可见）</h2>
+            <form id="uploadForm">
+                <input type="file" id="fileInput" multiple>
+                <button type="submit">上传</button>
+            </form>
+        </section>
+
+        <section id="fileListSection">
+            <h2>学习资料列表</h2>
+            <div id="fileList">
+                <!-- 文件列表将通过JavaScript动态加载 -->
+            </div>
+        </section>
+    </main>
+
+    <!-- 登录模态框 -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
             <h2>用户登录</h2>
             <form id="loginForm">
                 <label for="username">用户名:</label>
@@ -80,74 +249,144 @@
                 <button type="submit">登录</button>
             </form>
         </div>
+    </div>
 
-        <div id="register" class="tabcontent">
+    <!-- 注册模态框 -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
             <h2>用户注册</h2>
             <form id="registerForm">
                 <label for="regUsername">用户名:</label>
                 <input type="text" id="regUsername" required>
                 <label for="regPassword">密码:</label>
                 <input type="password" id="regPassword" required>
-                <!-- 添加确认密码输入框 -->
-                <label for="confirmPassword">确认密码:</label>
-                <input type="password" id="confirmPassword" required>
-                <!-- 添加错误提示信息 -->
-                <div id="passwordError" class="error-message" style="display: none;"></div>
                 <button type="submit">注册</button>
             </form>
         </div>
     </div>
 
+    <!-- 删除确认模态框 -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>确认删除</h2>
+            <p>确定要删除这个文件吗？此操作不可恢复。</p>
+            <button id="confirmDeleteBtn">确认删除</button>
+            <button id="cancelDeleteBtn">取消</button>
+        </div>
+    </div>
+
     <script>
-        function openTab(evt, tabName) {
-            var i, tabcontent, tablinks;
-            tabcontent = document.getElementsByClassName("tabcontent");
-            for (i = 0; i < tabcontent.length; i++) {
-                tabcontent[i].classList.remove("active");
-            }
-            tablinks = document.getElementsByClassName("tablinks");
-            for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].className = tablinks[i].className.replace(" active", "");
-            }
-            document.getElementById(tabName).classList.add("active");
-            evt.currentTarget.className += " active";
-        }
-
-        // 密码验证逻辑
-        document.getElementById('regPassword').addEventListener('input', validatePassword);
-        document.getElementById('confirmPassword').addEventListener('input', validatePassword);
-
-        function validatePassword() {
-            const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const errorDiv = document.getElementById('passwordError');
-            
-            // 检查密码长度
-            if (password.length < 6) {
-                errorDiv.textContent = '密码长度不能少于 6 位';
-                errorDiv.style.display = 'block';
-                return false;
-            }
-            
-            // 检查密码一致性
-            if (confirmPassword && password !== confirmPassword) {
-                errorDiv.textContent = '两次输入的密码不一致';
-                errorDiv.style.display = 'block';
-                return false;
-            }
-            
-            // 隐藏错误信息
-            errorDiv.style.display = 'none';
-            return true;
-        }
-
-        // 表单提交验证
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
-            if (!validatePassword()) {
-                e.preventDefault(); // 阻止表单提交
+        // 侧边栏菜单展开/收起功能
+        document.querySelectorAll('.menu-item:not(#bookmarkFeature)').forEach(item => {
+            item.addEventListener('click', function() {
+                this.classList.toggle('expanded');
+            });
+        });
+        
+        // 添加书签功能
+        document.getElementById('bookmarkFeature').addEventListener('click', function() {
+            const bookmarkName = prompt('请输入书签名称:');
+            if (bookmarkName) {
+                const sidebar = document.querySelector('.sidebar');
+                const menuItem = document.createElement('div');
+                menuItem.className = 'menu-item expanded';
+                menuItem.innerHTML = `
+                    ${bookmarkName}
+                    <div class="submenu">
+                        <div class="submenu-item">书签内容</div>
+                    </div>
+                `;
+                // 插入到添加书签功能下方
+                sidebar.insertBefore(menuItem, document.querySelector('.admin-controls'));
+                
+                // 绑定点击事件
+                menuItem.addEventListener('click', function() {
+                    this.classList.toggle('expanded');
+                });
             }
         });
+
+        // 模拟用户登录状态和权限检查
+        let currentUser = null;
+        let isAdmin = false;
+
+        // 模拟登录函数
+        function login(username, password) {
+            // 这里应该是实际的登录验证逻辑
+            currentUser = username;
+            // 假设 admin 用户为管理员
+            isAdmin = username === 'admin';
+            
+            // 更新UI
+            updateUI();
+        }
+
+        // 更新界面显示
+        function updateUI() {
+            if (currentUser) {
+                document.getElementById('userInfo').textContent = `欢迎, ${currentUser}`;
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('registerBtn').style.display = 'none';
+                document.getElementById('logoutBtn').style.display = 'inline-block';
+                
+                // 显示管理员控制按钮
+                if (isAdmin) {
+                    document.getElementById('adminControls').style.display = 'block';
+                    document.getElementById('fileUploadSection').style.display = 'block';
+                }
+            } else {
+                document.getElementById('userInfo').textContent = '';
+                document.getElementById('loginBtn').style.display = 'inline-block';
+                document.getElementById('registerBtn').style.display = 'inline-block';
+                document.getElementById('logoutBtn').style.display = 'none';
+                document.getElementById('adminControls').style.display = 'none';
+                document.getElementById('fileUploadSection').style.display = 'none';
+            }
+        }
+
+        // 添加菜单功能
+        document.getElementById('addMenuBtn').addEventListener('click', function() {
+            const menuName = prompt('请输入新菜单名称:');
+            if (menuName) {
+                const sidebar = document.querySelector('.sidebar');
+                const menuItem = document.createElement('div');
+                menuItem.className = 'menu-item expanded';
+                menuItem.innerHTML = `
+                    ${menuName}
+                    <div class="submenu">
+                        <div class="submenu-item">子菜单项</div>
+                    </div>
+                `;
+                // 插入到管理员控制按钮之前
+                sidebar.insertBefore(menuItem, document.getElementById('adminControls'));
+                
+                // 绑定点击事件
+                menuItem.addEventListener('click', function() {
+                    this.classList.toggle('expanded');
+                });
+            }
+        });
+
+        // 删除菜单功能
+        document.getElementById('deleteMenuBtn').addEventListener('click', function() {
+            const menuItems = document.querySelectorAll('.menu-item');
+            if (menuItems.length > 1) { // 确保至少保留一个菜单项
+                const lastMenuItem = menuItems[menuItems.length - 1];
+                if(lastMenuItem.id !== 'adminControls') {
+                    lastMenuItem.remove();
+                }
+            } else {
+                alert('没有可删除的菜单项');
+            }
+        });
+
+        // 初始化UI
+        updateUI();
+
+        // 其他原有脚本...
     </script>
-    <script src="login-script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
