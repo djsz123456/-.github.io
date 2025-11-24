@@ -3,41 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>学习资料共享平台</title>
+    <title>用户登录 - 学习资料共享平台</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            width: 50%;
+        }
+
+        .tab button:hover {
+            background-color: #ddd;
+        }
+
+        .tab button.active {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .tabcontent {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+
+        .tabcontent.active {
+            display: block;
+        }
+
+        /* 添加错误提示样式 */
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>学习资料共享平台</h1>
-        <nav>
-            <button id="loginBtn">登录</button>
-            <button id="registerBtn">注册</button>
-            <button id="logoutBtn" style="display:none;">退出</button>
-            <span id="userInfo"></span>
-        </nav>
-    </header>
+    <div class="container">
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'login')">登录</button>
+            <button class="tablinks" onclick="openTab(event, 'register')">注册</button>
+        </div>
 
-    <main>
-        <section id="fileUploadSection" style="display:none;">
-            <h2>上传文件（仅管理员可见）</h2>
-            <form id="uploadForm">
-                <input type="file" id="fileInput" multiple>
-                <button type="submit">上传</button>
-            </form>
-        </section>
-
-        <section id="fileListSection">
-            <h2>学习资料列表</h2>
-            <div id="fileList">
-                <!-- 文件列表将通过JavaScript动态加载 -->
-            </div>
-        </section>
-    </main>
-
-    <!-- 登录模态框 -->
-    <div id="loginModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
+        <div id="login" class="tabcontent active">
             <h2>用户登录</h2>
             <form id="loginForm">
                 <label for="username">用户名:</label>
@@ -47,34 +80,74 @@
                 <button type="submit">登录</button>
             </form>
         </div>
-    </div>
 
-    <!-- 注册模态框 -->
-    <div id="registerModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
+        <div id="register" class="tabcontent">
             <h2>用户注册</h2>
             <form id="registerForm">
                 <label for="regUsername">用户名:</label>
                 <input type="text" id="regUsername" required>
                 <label for="regPassword">密码:</label>
                 <input type="password" id="regPassword" required>
+                <!-- 添加确认密码输入框 -->
+                <label for="confirmPassword">确认密码:</label>
+                <input type="password" id="confirmPassword" required>
+                <!-- 添加错误提示信息 -->
+                <div id="passwordError" class="error-message" style="display: none;"></div>
                 <button type="submit">注册</button>
             </form>
         </div>
     </div>
 
-    <!-- 删除确认模态框 -->
-    <div id="deleteModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>确认删除</h2>
-            <p>确定要删除这个文件吗？此操作不可恢复。</p>
-            <button id="confirmDeleteBtn">确认删除</button>
-            <button id="cancelDeleteBtn">取消</button>
-        </div>
-    </div>
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.className += " active";
+        }
 
-    <script src="script.js"></script>
+        // 密码验证逻辑
+        document.getElementById('regPassword').addEventListener('input', validatePassword);
+        document.getElementById('confirmPassword').addEventListener('input', validatePassword);
+
+        function validatePassword() {
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorDiv = document.getElementById('passwordError');
+            
+            // 检查密码长度
+            if (password.length < 6) {
+                errorDiv.textContent = '密码长度不能少于 6 位';
+                errorDiv.style.display = 'block';
+                return false;
+            }
+            
+            // 检查密码一致性
+            if (confirmPassword && password !== confirmPassword) {
+                errorDiv.textContent = '两次输入的密码不一致';
+                errorDiv.style.display = 'block';
+                return false;
+            }
+            
+            // 隐藏错误信息
+            errorDiv.style.display = 'none';
+            return true;
+        }
+
+        // 表单提交验证
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            if (!validatePassword()) {
+                e.preventDefault(); // 阻止表单提交
+            }
+        });
+    </script>
+    <script src="login-script.js"></script>
 </body>
 </html>
