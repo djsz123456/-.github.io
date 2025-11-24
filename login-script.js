@@ -39,6 +39,7 @@ if (document.getElementById('registerForm')) {
         const username = document.getElementById('regUsername').value;
         const password = document.getElementById('regPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
+        const email = document.getElementById('regEmail').value;
         
         // 检查密码一致性
         if (password !== confirmPassword) {
@@ -56,12 +57,8 @@ if (document.getElementById('registerForm')) {
             return;
         }
         
-        users[username] = password;
-        localStorage.setItem('users', JSON.stringify(users));
-        alert('注册成功！');
-        
-        // 注册成功后自动切换到登录标签
-        document.querySelector('.tablinks:first-child').click();
+        // 显示邮箱验证界面
+        showEmailVerification(username, password, email);
     });
 }
 
@@ -110,4 +107,55 @@ function validatePassword() {
     // 隐藏错误信息
     errorDiv.style.display = 'none';
     return true;
+}
+
+// 邮箱验证功能
+function showEmailVerification(username, password, email) {
+    // 生成6位随机验证码
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // 在实际应用中，这里应该调用邮件服务API发送验证码到用户邮箱
+    // 为了演示目的，我们将验证码显示在控制台
+    console.log(`发送到邮箱 ${email} 的验证码是: ${verificationCode}`);
+    
+    // 创建邮箱验证界面
+    const verificationHTML = `
+        <h2>邮箱验证</h2>
+        <p>验证码已发送至您的邮箱: ${email}</p>
+        <label for="verificationCode">请输入验证码:</label>
+        <input type="text" id="verificationCode" required>
+        <button id="verifyButton">验证</button>
+        <button id="resendCodeButton">重新发送验证码</button>
+        <div id="verificationError" class="error-message" style="display: none;"></div>
+    `;
+    
+    // 替换注册表单内容
+    const registerTab = document.getElementById('register');
+    registerTab.innerHTML = verificationHTML;
+    
+    // 绑定验证按钮事件
+    document.getElementById('verifyButton').addEventListener('click', function() {
+        const enteredCode = document.getElementById('verificationCode').value;
+        const errorDiv = document.getElementById('verificationError');
+        
+        if (enteredCode === verificationCode) {
+            // 验证成功，保存用户信息
+            users[username] = password;
+            localStorage.setItem('users', JSON.stringify(users));
+            alert('注册成功！');
+            
+            // 注册成功后自动切换到登录标签
+            document.querySelector('.tablinks:first-child').click();
+        } else {
+            errorDiv.textContent = '验证码错误，请重新输入';
+            errorDiv.style.display = 'block';
+        }
+    });
+    
+    // 绑定重新发送验证码按钮事件
+    document.getElementById('resendCodeButton').addEventListener('click', function() {
+        // 重新生成验证码并显示提示
+        console.log(`重新发送到邮箱 ${email} 的验证码是: ${verificationCode}`);
+        alert('验证码已重新发送，请检查您的邮箱');
+    });
 }
