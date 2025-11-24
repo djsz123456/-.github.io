@@ -7,6 +7,23 @@ let users = JSON.parse(localStorage.getItem('users')) || {};
 let files = JSON.parse(localStorage.getItem('files')) || [];
 let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
+// 添加菜单项与文件分类的映射
+let menuCategories = [
+    "数据结构",
+    "四级英语试卷",
+    "六级英语试卷",
+    "Java基础知识",
+    "Python基础知识",
+    "高考数学",
+    "高考物理",
+    "高考化学",
+    "高考语文",
+    "高考生物",
+    "高考英语",
+    "C++基础知识",
+    "C语言经典题型"
+];
+
 // DOM元素
 const loginBtn = document.getElementById('loginBtn');
 const registerBtn = document.getElementById('registerBtn');
@@ -18,41 +35,52 @@ const fileList = document.getElementById('fileList');
 const fileListSection = document.getElementById('fileListSection');
 const fileUploadSection = document.getElementById('fileUploadSection');
 
+// 当前选中的菜单项
+let currentCategory = "";
+
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
-    // 检查用户是否已经登录，如果没有则跳转到登录页面
-    if (!currentUser && window.location.pathname !== '/login.html') {
-        window.location.href = 'login.html';
-        return;
-    }
-    
     updateUI();
     loadFileList();
     
     // 绑定事件
-    if (document.getElementById('loginForm')) {
-        document.getElementById('loginForm').addEventListener('submit', handleLogin);
+    if (document.getElementById('uploadForm')) {
+        document.getElementById('uploadForm').addEventListener('submit', handleFileUpload);
     }
-    if (document.getElementById('registerForm')) {
-        document.getElementById('registerForm').addEventListener('submit', handleRegister);
-    }
-    document.getElementById('uploadForm').addEventListener('submit', handleFileUpload);
     
-    if (loginBtn) loginBtn.addEventListener('click', () => loginModal.style.display = 'block');
-    if (registerBtn) registerBtn.addEventListener('click', () => registerModal.style.display = 'block');
+    if (loginBtn) loginBtn.addEventListener('click', () => {
+        if (loginModal) loginModal.style.display = 'block';
+    });
+    if (registerBtn) registerBtn.addEventListener('click', () => {
+        if (registerModal) registerModal.style.display = 'block';
+    });
     if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
     
     // 关闭模态框
     document.querySelectorAll('.close').forEach(closeBtn => {
         closeBtn.addEventListener('click', function() {
-            loginModal.style.display = 'none';
-            registerModal.style.display = 'none';
+            if (loginModal) loginModal.style.display = 'none';
+            if (registerModal) registerModal.style.display = 'none';
         });
     });
     
     window.addEventListener('click', function(event) {
-        if (event.target === loginModal) loginModal.style.display = 'none';
-        if (event.target === registerModal) registerModal.style.display = 'none';
+        if (loginModal && event.target === loginModal) loginModal.style.display = 'none';
+        if (registerModal && event.target === registerModal) registerModal.style.display = 'none';
+    });
+    
+    // 为菜单项添加点击事件
+    document.querySelectorAll('.menu-item:not(#bookmarkFeature)').forEach((item, index) => {
+        item.addEventListener('click', function() {
+            // 切换展开/收起状态
+            this.classList.toggle('expanded');
+            
+            // 设置当前选中的分类
+            if (index < menuCategories.length) {
+                currentCategory = menuCategories[index];
+                loadFileList(); // 重新加载文件列表
+            }
+        });
     });
 });
 
@@ -65,21 +93,27 @@ function updateUI() {
         if (userInfo) userInfo.textContent = `欢迎, ${currentUser.username}`;
         
         // 如果是管理员，显示上传区域
-        if (currentUser.username === ADMIN_USERNAME) {
+        if (currentUser.isAdmin && fileUploadSection) {
             fileUploadSection.style.display = 'block';
         }
         
+        // 显示管理员控制按钮
+        if (currentUser.isAdmin) {
+            const adminControls = document.getElementById('adminControls');
+            if (adminControls) adminControls.style.display = 'block';
+        }
+        
         // 显示文件列表区域
-        fileListSection.style.display = 'block';
+        if (fileListSection) fileListSection.style.display = 'block';
     } else {
         if (loginBtn) loginBtn.style.display = 'inline-block';
         if (registerBtn) registerBtn.style.display = 'inline-block';
         if (logoutBtn) logoutBtn.style.display = 'none';
         if (userInfo) userInfo.textContent = '';
-        fileUploadSection.style.display = 'none';
+        if (fileUploadSection) fileUploadSection.style.display = 'none';
         
         // 隐藏文件列表区域，显示登录提示
-        fileListSection.style.display = 'none';
+        if (fileListSection) fileListSection.style.display = 'none';
     }
 }
 
@@ -93,14 +127,28 @@ function loadFileList() {
     
     if (!fileList) return;
     
-    fileList.innerHTML = '';
-    
-    if (files.length === 0) {
-        fileList.innerHTML = '<p>暂无文件</p>';
+    // 如果没有选中任何分类，显示提示信息
+    if (!currentCategory) {
+        fileList.innerHTML = '<p>请从左侧菜单选择一个分类查看文件</p>';
         return;
     }
     
-    files.forEach(file => {
+    // 过滤出当前分类的文件
+    const categoryFiles = files.filter(file => file.category === currentCategory);
+    
+    fileList.innerHTML = '';
+    
+    // 显示当前分类标题
+    const categoryTitle = document.createElement('h3');
+    categoryTitle.textContent = `${currentCategory} - 文件列表`;
+    fileList.appendChild(categoryTitle);
+    
+    if (categoryFiles.length === 0) {
+        fileList.innerHTML += '<p>该分类下暂无文件</p>';
+        return;
+    }
+    
+    categoryFiles.forEach(file => {
         const fileItem = document.createElement('div');
         fileItem.className = 'file-item';
         fileItem.innerHTML = `
@@ -123,57 +171,6 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// 处理登录
-function handleLogin(e) {
-    e.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    
-    // 检查是否为管理员
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-        currentUser = { username: ADMIN_USERNAME, isAdmin: true };
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        loginModal.style.display = 'none';
-        updateUI();
-        loadFileList();
-        return;
-    }
-    
-    // 检查普通用户
-    if (users[username] && users[username] === password) {
-        currentUser = { username, isAdmin: false };
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        loginModal.style.display = 'none';
-        updateUI();
-        loadFileList();
-        return;
-    }
-    
-    alert('用户名或密码错误！');
-}
-
-// 处理注册
-function handleRegister(e) {
-    e.preventDefault();
-    const username = document.getElementById('regUsername').value;
-    const password = document.getElementById('regPassword').value;
-    
-    if (username === ADMIN_USERNAME) {
-        alert('该用户名已被占用！');
-        return;
-    }
-    
-    if (users[username]) {
-        alert('用户名已存在！');
-        return;
-    }
-    
-    users[username] = password;
-    localStorage.setItem('users', JSON.stringify(users));
-    alert('注册成功！');
-    registerModal.style.display = 'none';
-}
-
 // 处理登出
 function handleLogout() {
     currentUser = null;
@@ -189,8 +186,14 @@ function handleFileUpload(e) {
     e.preventDefault();
     const fileInput = document.getElementById('fileInput');
     
-    if (!fileInput.files.length) {
+    if (!fileInput || !fileInput.files.length) {
         alert('请选择文件！');
+        return;
+    }
+    
+    // 检查是否选择了分类
+    if (!currentCategory) {
+        alert('请先从左侧菜单选择一个分类！');
         return;
     }
     
@@ -203,12 +206,13 @@ function handleFileUpload(e) {
             id: fileId,
             name: file.name,
             size: file.size,
-            uploadTime: new Date().getTime()
+            uploadTime: new Date().getTime(),
+            category: currentCategory // 将文件与当前选中的分类关联
         });
     }
     
     localStorage.setItem('files', JSON.stringify(files));
-    loadFileList();
+    loadFileList(); // 重新加载文件列表
     alert('文件上传成功！');
     fileInput.value = ''; // 清空文件输入
 }
