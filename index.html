@@ -27,6 +27,17 @@
             font-weight: bold;
         }
 
+        /* 修改菜单容器样式以支持滚动 */
+        #menuContainer {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+            scrollbar-width: none; /* Firefox */
+        }
+
+        #menuContainer::-webkit-scrollbar {
+            display: none; /* Chrome Safari */
+        }
+
         .menu-item {
             padding: 12px 20px;
             cursor: pointer;
@@ -89,120 +100,20 @@
     </style>
 </head>
 <body>
-    <!-- 添加侧边栏 -->
     <div class="sidebar">
         <div class="sidebar-header">目录导航</div>
         
-        <!-- 核心功能描述 -->
+     
         <div class="menu-item" id="bookmarkFeature" style="background-color: #007bff; font-weight: bold;">
             添加书签
         </div>
         
-        <!-- 默认菜单项 -->
-        <div class="menu-item expanded">
-            数据结构
-            <div class="submenu">
-                <div class="submenu-item">学习资料</div>
-            </div>
-        </div>
-        
-        <div class="menu-item expanded">
-            四级英语试卷
-            <div class="submenu">
-                <div class="submenu-item">历年真题</div>
-                <div class="submenu-item">模拟试题</div>
-            </div>
-        </div>
-        
-        <div class="menu-item expanded">
-            六级英语试卷
-            <div class="submenu">
-                <div class="submenu-item">历年真题</div>
-                <div class="submenu-item">模拟试题</div>
-            </div>
-        </div>
-        
-        <div class="menu-item expanded">
-            Java基础知识
-            <div class="submenu">
-                <div class="submenu-item">语法基础</div>
-                <div class="submenu-item">面向对象</div>
-            </div>
-        </div>
-        
-        <div class="menu-item expanded">
-            Python基础知识
-            <div class="submenu">
-                <div class="submenu-item">语法基础</div>
-                <div class="submenu-item">数据分析</div>
-            </div>
-        </div>
-        
-        <div class="menu-item expanded">
-            高考数学
-            <div class="submenu">
-                <div class="submenu-item">代数</div>
-                <div class="submenu-item">几何</div>
-            </div>
-        </div>
-        
-        <div class="menu-item expanded">
-            高考物理
-            <div class="submenu">
-                <div class="submenu-item">力学</div>
-                <div class="submenu-item">电磁学</div>
-            </div>
-        </div>
-        
-        <div class="menu-item expanded">
-            高考化学
-            <div class="submenu">
-                <div class="submenu-item">无机化学</div>
-                <div class="submenu-item">有机化学</div>
-            </div>
-        </div>
-        
-        <div class="menu-item expanded">
-            高考语文
-            <div class="submenu">
-                <div class="submenu-item">古诗词</div>
-                <div class="submenu-item">现代文阅读</div>
-            </div>
-        </div>
-        
-        <div class="menu-item expanded">
-            高考生物
-            <div class="submenu">
-                <div class="submenu-item">细胞生物学</div>
-                <div class="submenu-item">遗传学</div>
-            </div>
-        </div>
-        
-        <div class="menu-item expanded">
-            高考英语
-            <div class="submenu">
-                <div class="submenu-item">词汇</div>
-                <div class="submenu-item">阅读理解</div>
-            </div>
-        </div>
-        
-        <div class="menu-item expanded">
-            C++基础知识
-            <div class="submenu">
-                <div class="submenu-item">语法基础</div>
-                <div class="submenu-item">STL库</div>
-            </div>
-        </div>
-        
-        <div class="menu-item expanded">
-            C语言经典题型
-            <div class="submenu">
-                <div class="submenu-item">指针</div>
-                <div class="submenu-item">结构体</div>
-            </div>
+      
+        <div id="menuContainer">
+           
         </div>
 
-        <!-- 管理员控制按钮 -->
+      
         <div class="admin-controls" id="adminControls" style="display: none;">
             <button class="admin-btn" id="addMenuBtn">添加菜单</button>
             <button class="admin-btn" id="deleteMenuBtn">删除菜单</button>
@@ -231,12 +142,12 @@
         <section id="fileListSection">
             <h2>学习资料列表</h2>
             <div id="fileList">
-                <!-- 文件列表将通过JavaScript动态加载 -->
+            
             </div>
         </section>
     </main>
 
-    <!-- 登录模态框 -->
+    
     <div id="loginModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
@@ -251,7 +162,7 @@
         </div>
     </div>
 
-    <!-- 注册模态框 -->
+
     <div id="registerModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
@@ -266,7 +177,7 @@
         </div>
     </div>
 
-    <!-- 删除确认模态框 -->
+   
     <div id="deleteModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
@@ -277,116 +188,130 @@
         </div>
     </div>
 
+    <script src="script.js"></script>
     <script>
-        // 侧边栏菜单展开/收起功能
-        document.querySelectorAll('.menu-item:not(#bookmarkFeature)').forEach(item => {
-            item.addEventListener('click', function() {
-                this.classList.toggle('expanded');
-            });
-        });
-        
-        // 添加书签功能
-        document.getElementById('bookmarkFeature').addEventListener('click', function() {
-            const bookmarkName = prompt('请输入书签名称:');
-            if (bookmarkName) {
-                const sidebar = document.querySelector('.sidebar');
-                const menuItem = document.createElement('div');
-                menuItem.className = 'menu-item expanded';
-                menuItem.innerHTML = `
-                    ${bookmarkName}
-                    <div class="submenu">
-                        <div class="submenu-item">书签内容</div>
-                    </div>
-                `;
-                // 插入到添加书签功能下方
-                sidebar.insertBefore(menuItem, document.querySelector('.admin-controls'));
-                
-                // 绑定点击事件
-                menuItem.addEventListener('click', function() {
-                    this.classList.toggle('expanded');
-                });
+       
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser) {
+                // 如果未登录，跳转到登录页面
+                window.location.href = 'login.html';
+                return;
             }
-        });
-
-        // 模拟用户登录状态和权限检查
-        let currentUser = null;
-        let isAdmin = false;
-
-        // 模拟登录函数
-        function login(username, password) {
-            // 这里应该是实际的登录验证逻辑
-            currentUser = username;
-            // 假设 admin 用户为管理员
-            isAdmin = username === 'admin';
             
             // 更新UI
             updateUI();
-        }
-
-        // 更新界面显示
-        function updateUI() {
-            if (currentUser) {
-                document.getElementById('userInfo').textContent = `欢迎, ${currentUser}`;
-                document.getElementById('loginBtn').style.display = 'none';
-                document.getElementById('registerBtn').style.display = 'none';
-                document.getElementById('logoutBtn').style.display = 'inline-block';
-                
-                // 显示管理员控制按钮
-                if (isAdmin) {
-                    document.getElementById('adminControls').style.display = 'block';
-                    document.getElementById('fileUploadSection').style.display = 'block';
+            
+            // 初始化菜单
+            initializeMenu();
+            
+            // 添加书签功能
+            document.getElementById('bookmarkFeature').addEventListener('click', function() {
+                const bookmarkName = prompt('请输入书签名称:');
+                if (bookmarkName) {
+                    addMenuItem(bookmarkName, ['书签内容']);
                 }
-            } else {
-                document.getElementById('userInfo').textContent = '';
-                document.getElementById('loginBtn').style.display = 'inline-block';
-                document.getElementById('registerBtn').style.display = 'inline-block';
-                document.getElementById('logoutBtn').style.display = 'none';
-                document.getElementById('adminControls').style.display = 'none';
-                document.getElementById('fileUploadSection').style.display = 'none';
-            }
-        }
+            });
 
-        // 添加菜单功能
-        document.getElementById('addMenuBtn').addEventListener('click', function() {
-            const menuName = prompt('请输入新菜单名称:');
-            if (menuName) {
-                const sidebar = document.querySelector('.sidebar');
-                const menuItem = document.createElement('div');
-                menuItem.className = 'menu-item expanded';
-                menuItem.innerHTML = `
-                    ${menuName}
-                    <div class="submenu">
-                        <div class="submenu-item">子菜单项</div>
-                    </div>
-                `;
-                // 插入到管理员控制按钮之前
-                sidebar.insertBefore(menuItem, document.getElementById('adminControls'));
-                
-                // 绑定点击事件
-                menuItem.addEventListener('click', function() {
-                    this.classList.toggle('expanded');
-                });
-            }
+            // 添加菜单功能
+            document.getElementById('addMenuBtn')?.addEventListener('click', function() {
+                const menuName = prompt('请输入新菜单名称:');
+                if (menuName) {
+                    addMenuItem(menuName, ['子菜单项']);
+                }
+            });
+
+            // 删除菜单功能
+            document.getElementById('deleteMenuBtn')?.addEventListener('click', function() {
+                removeLastMenuItem();
+            });
         });
-
-        // 删除菜单功能
-        document.getElementById('deleteMenuBtn').addEventListener('click', function() {
-            const menuItems = document.querySelectorAll('.menu-item');
-            if (menuItems.length > 1) { // 确保至少保留一个菜单项
-                const lastMenuItem = menuItems[menuItems.length - 1];
-                if(lastMenuItem.id !== 'adminControls') {
-                    lastMenuItem.remove();
+        
+        // 初始化菜单
+        function initializeMenu() {
+            const menuContainer = document.getElementById('menuContainer');
+            if (!menuContainer) return;
+            
+            // 定义默认菜单项（只保留主菜单，删除所有子菜单）
+            const defaultMenus = [
+                { name: "数据结构", submenus: [] },
+                { name: "四级英语试卷", submenus: [] },
+                { name: "六级英语试卷", submenus: [] },
+                { name: "Java基础知识", submenus: [] },
+                { name: "Python基础知识", submenus: [] },
+                { name: "高考数学", submenus: [] },
+                { name: "高考物理", submenus: [] },
+                { name: "高考化学", submenus: [] },
+                { name: "高考语文", submenus: [] },
+                { name: "高考生物", submenus: [] },
+                { name: "高考英语", submenus: [] },
+                { name: "C++基础知识", submenus: [] },
+                { name: "C语言经典题型", submenus: [] }
+            ];
+            
+            // 清空容器
+            menuContainer.innerHTML = '';
+            
+            // 创建菜单项
+            defaultMenus.forEach(menu => {
+                const menuItem = createMenuItem(menu.name, menu.submenus);
+                menuContainer.appendChild(menuItem);
+            });
+        }
+        
+        // 创建菜单项
+        function createMenuItem(name, submenus) {
+            const menuItem = document.createElement('div');
+            menuItem.className = 'menu-item expanded';
+            menuItem.innerHTML = name;
+            
+            // 创建子菜单容器
+            const submenu = document.createElement('div');
+            submenu.className = 'submenu';
+            
+            // 添加子菜单项
+            submenus.forEach(subName => {
+                const submenuItem = document.createElement('div');
+                submenuItem.className = 'submenu-item';
+                submenuItem.textContent = subName;
+                submenu.appendChild(submenuItem);
+            });
+            
+            menuItem.appendChild(submenu);
+            
+            // 绑定点击事件
+            menuItem.addEventListener('click', function(e) {
+                // 阻止事件冒泡
+                if (e.target === menuItem) {
+                    this.classList.toggle('expanded');
                 }
+            });
+            
+            return menuItem;
+        }
+        
+        // 添加新菜单项
+        function addMenuItem(name, submenus) {
+            const menuContainer = document.getElementById('menuContainer');
+            if (!menuContainer) return;
+            
+            const menuItem = createMenuItem(name, submenus);
+            menuContainer.appendChild(menuItem);
+        }
+        
+        // 删除最后一个菜单项
+        function removeLastMenuItem() {
+            const menuContainer = document.getElementById('menuContainer');
+            if (!menuContainer) return;
+            
+            const menuItems = menuContainer.querySelectorAll('.menu-item');
+            if (menuItems.length > 0) {
+                menuContainer.removeChild(menuItems[menuItems.length - 1]);
             } else {
                 alert('没有可删除的菜单项');
             }
-        });
-
-        // 初始化UI
-        updateUI();
-
-        // 其他原有脚本...
+        }
     </script>
-    <script src="script.js"></script>
 </body>
 </html>
