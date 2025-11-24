@@ -53,6 +53,14 @@
         .tabcontent.active {
             display: block;
         }
+
+        /* 添加错误提示样式 */
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -80,6 +88,11 @@
                 <input type="text" id="regUsername" required>
                 <label for="regPassword">密码:</label>
                 <input type="password" id="regPassword" required>
+                <!-- 添加确认密码输入框 -->
+                <label for="confirmPassword">确认密码:</label>
+                <input type="password" id="confirmPassword" required>
+                <!-- 添加错误提示信息 -->
+                <div id="passwordError" class="error-message" style="display: none;"></div>
                 <button type="submit">注册</button>
             </form>
         </div>
@@ -100,7 +113,40 @@
             evt.currentTarget.className += " active";
         }
 
-        // 处理登录和注册的脚本将在下面加载
+        // 密码验证逻辑
+        document.getElementById('regPassword').addEventListener('input', validatePassword);
+        document.getElementById('confirmPassword').addEventListener('input', validatePassword);
+
+        function validatePassword() {
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorDiv = document.getElementById('passwordError');
+            
+            // 检查密码长度
+            if (password.length < 6) {
+                errorDiv.textContent = '密码长度不能少于 6 位';
+                errorDiv.style.display = 'block';
+                return false;
+            }
+            
+            // 检查密码一致性
+            if (confirmPassword && password !== confirmPassword) {
+                errorDiv.textContent = '两次输入的密码不一致';
+                errorDiv.style.display = 'block';
+                return false;
+            }
+            
+            // 隐藏错误信息
+            errorDiv.style.display = 'none';
+            return true;
+        }
+
+        // 表单提交验证
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            if (!validatePassword()) {
+                e.preventDefault(); // 阻止表单提交
+            }
+        });
     </script>
     <script src="login-script.js"></script>
 </body>
