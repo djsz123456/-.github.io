@@ -2,9 +2,12 @@
 const ADMIN_USERNAME = "admin";
 const ADMIN_PASSWORD = "admin123";
 
+// 后端API基础URL
+const API_BASE_URL = 'http://localhost:8081/api';
+
 // 模拟数据库存储
 let users = JSON.parse(localStorage.getItem('users')) || {};
-let files = JSON.parse(localStorage.getItem('files')) || [];
+let files = [];
 let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
 // 添加菜单项与文件分类的映射
@@ -23,6 +26,9 @@ let menuCategories = [
     "C++基础知识",
     "C语言经典题型"
 ];
+
+// 评论数据存储
+let comments = JSON.parse(localStorage.getItem('comments')) || {};
 
 // DOM元素
 const loginBtn = document.getElementById('loginBtn');
@@ -69,11 +75,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (registerModal && event.target === registerModal) registerModal.style.display = 'none';
     });
     
-    // 为菜单项添加点击事件
+    // 为菜单项添加点击事件 - 修复点击事件
     document.querySelectorAll('.menu-item:not(#bookmarkFeature)').forEach((item, index) => {
-        item.addEventListener('click', function() {
-            // 切换展开/收起状态
-            this.classList.toggle('expanded');
+        item.addEventListener('click', function(e) {
+            // 移除所有菜单项的活动状态
+            document.querySelectorAll('.menu-item').forEach(menuItem => {
+                menuItem.classList.remove('active');
+            });
+            
+            // 为当前点击的菜单项添加活动状态
+            this.classList.add('active');
             
             // 设置当前选中的分类
             if (index < menuCategories.length) {
@@ -118,7 +129,7 @@ function updateUI() {
 }
 
 // 加载文件列表
-function loadFileList() {
+async function loadFileList() {
     // 只有登录用户才能查看文件列表
     if (!currentUser) {
         if (fileList) fileList.innerHTML = '<p>请登录后查看文件资料</p>';
@@ -133,8 +144,18 @@ function loadFileList() {
         return;
     }
     
-    // 过滤出当前分类的文件
-    const categoryFiles = files.filter(file => file.category === currentCategory);
+    try {
+        // 从后端获取指定分类的文件
+        const response = await fetch(`${API_BASE_URL}/files/category/${encodeURIComponent(currentCategory)}`);
+        if (response.ok) {
+            files = await response.json();
+        } else {
+            files = [];
+        }
+    } catch (error) {
+        console.error('获取文件列表失败:', error);
+        files = [];
+    }
     
     fileList.innerHTML = '';
     
@@ -143,23 +164,25 @@ function loadFileList() {
     categoryTitle.textContent = `${currentCategory} - 文件列表`;
     fileList.appendChild(categoryTitle);
     
-    if (categoryFiles.length === 0) {
+    if (files.length === 0) {
         fileList.innerHTML += '<p>该分类下暂无文件</p>';
-        return;
+    } else {
+        files.forEach(file => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <div class="file-info">
+                    <h3>${file.name}</h3>
+                    <p>大小: ${formatFileSize(file.size)} | 上传时间: ${new Date(file.uploadTime).toLocaleString()}</p>
+                </div>
+                <button class="download-btn" onclick="downloadFile(${file.id})">下载</button>
+            `;
+            fileList.appendChild(fileItem);
+        });
     }
     
-    categoryFiles.forEach(file => {
-        const fileItem = document.createElement('div');
-        fileItem.className = 'file-item';
-        fileItem.innerHTML = `
-            <div class="file-info">
-                <h3>${file.name}</h3>
-                <p>大小: ${formatFileSize(file.size)} | 上传时间: ${new Date(file.uploadTime).toLocaleString()}</p>
-            </div>
-            <button class="download-btn" onclick="downloadFile('${file.id}')">下载</button>
-        `;
-        fileList.appendChild(fileItem);
-    });
+    // 添加评论区
+    addCommentSection();
 }
 
 // 格式化文件大小
@@ -182,7 +205,7 @@ function handleLogout() {
 }
 
 // 处理文件上传
-function handleFileUpload(e) {
+async function handleFileUpload(e) {
     e.preventDefault();
     const fileInput = document.getElementById('fileInput');
     
@@ -197,43 +220,145 @@ function handleFileUpload(e) {
         return;
     }
     
-    // 模拟文件上传
-    for (let i = 0; i < fileInput.files.length; i++) {
-        const file = fileInput.files[i];
-        const fileId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        
-        files.push({
-            id: fileId,
-            name: file.name,
-            size: file.size,
-            uploadTime: new Date().getTime(),
-            category: currentCategory // 将文件与当前选中的分类关联
-        });
-    }
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('category', currentCategory);
     
-    localStorage.setItem('files', JSON.stringify(files));
-    loadFileList(); // 重新加载文件列表
-    alert('文件上传成功！');
-    fileInput.value = ''; // 清空文件输入
+    try {
+        const response = await fetch(`${API_BASE_URL}/files/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            alert('文件上传成功！');
+            fileInput.value = ''; // 清空文件输入
+            loadFileList(); // 重新加载文件列表
+        } else {
+            const errorMsg = await response.text();
+            alert(`文件上传失败: ${errorMsg}`);
+        }
+    } catch (error) {
+        console.error('上传文件失败:', error);
+        alert('文件上传失败，请稍后重试');
+    }
 }
 
-// 模拟文件下载
-function downloadFile(fileId) {
+// 下载文件
+async function downloadFile(fileId) {
     // 确保用户已登录才能下载文件
     if (!currentUser) {
         alert('请先登录再下载文件');
         return;
     }
     
-    const file = files.find(f => f.id === fileId);
-    if (file) {
-        // 创建一个虚拟链接用于下载
-        const link = document.createElement('a');
-        link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(`这是${file.name}的内容示例`);
-        link.download = file.name;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    try {
+        // 创建下载链接
+        const downloadUrl = `${API_BASE_URL}/files/download/${fileId}`;
+        window.open(downloadUrl, '_blank');
+    } catch (error) {
+        console.error('下载文件失败:', error);
+        alert('文件下载失败，请稍后重试');
     }
+}
+
+// 添加评论区功能
+function addCommentSection() {
+    if (!currentCategory || !fileList) return;
+    
+    // 创建评论区容器
+    const commentSection = document.createElement('div');
+    commentSection.className = 'comment-section';
+    commentSection.innerHTML = `
+        <h3>评论区</h3>
+        <div class="comment-form">
+            <textarea id="commentContent" placeholder="请输入您的评论..." rows="3"></textarea>
+            <button id="submitComment">发表评论</button>
+        </div>
+        <div id="commentsList"></div>
+    `;
+    
+    fileList.appendChild(commentSection);
+    
+    // 绑定发表评论事件
+    document.getElementById('submitComment').addEventListener('click', submitComment);
+    
+    // 加载并显示评论
+    loadComments();
+}
+
+// 提交评论
+function submitComment() {
+    if (!currentUser) {
+        alert('请先登录后再发表评论');
+        return;
+    }
+    
+    const commentContent = document.getElementById('commentContent').value.trim();
+    if (!commentContent) {
+        alert('评论内容不能为空');
+        return;
+    }
+    
+    // 初始化该分类的评论数组
+    if (!comments[currentCategory]) {
+        comments[currentCategory] = [];
+    }
+    
+    // 添加新评论
+    const newComment = {
+        id: Date.now(),
+        username: currentUser.username,
+        content: commentContent,
+        timestamp: new Date().toLocaleString()
+    };
+    
+    comments[currentCategory].push(newComment);
+    
+    // 保存到本地存储
+    localStorage.setItem('comments', JSON.stringify(comments));
+    
+    // 清空输入框
+    document.getElementById('commentContent').value = '';
+    
+    // 重新加载评论
+    loadComments();
+}
+
+// 加载并显示评论
+function loadComments() {
+    if (!currentCategory) return;
+    
+    const commentsList = document.getElementById('commentsList');
+    if (!commentsList) return;
+    
+    // 获取当前分类的评论
+    const categoryComments = comments[currentCategory] || [];
+    
+    // 清空现有评论
+    commentsList.innerHTML = '';
+    
+    // 如果没有评论，显示提示信息
+    if (categoryComments.length === 0) {
+        commentsList.innerHTML = '<p class="no-comments">暂无评论，快来发表第一条评论吧！</p>';
+        return;
+    }
+    
+    // 按时间倒序排列评论
+    const sortedComments = [...categoryComments].sort((a, b) => b.id - a.id);
+    
+    // 显示评论
+    sortedComments.forEach(comment => {
+        const commentElement = document.createElement('div');
+        commentElement.className = 'comment-item';
+        commentElement.innerHTML = `
+            <div class="comment-header">
+                <span class="comment-user">${comment.username}</span>
+                <span class="comment-time">${comment.timestamp}</span>
+            </div>
+            <div class="comment-content">${comment.content}</div>
+        `;
+        commentsList.appendChild(commentElement);
+    });
 }
