@@ -29,7 +29,7 @@
 
         /* 修改菜单容器样式以支持滚动 */
         #menuContainer {
-            max-height: calc(100vh - 200px);
+            max-height: calc(100vh - 150px);
             overflow-y: auto;
             scrollbar-width: none; /* Firefox */
         }
@@ -46,6 +46,11 @@
 
         .menu-item:hover {
             background-color: #555;
+        }
+
+        .menu-item.active {
+            background-color: #007bff;
+            font-weight: bold;
         }
 
         .submenu {
@@ -103,11 +108,6 @@
     <!-- 添加侧边栏 -->
     <div class="sidebar">
         <div class="sidebar-header">目录导航</div>
-        
-        <!-- 核心功能描述 -->
-        <div class="menu-item" id="bookmarkFeature" style="background-color: #007bff; font-weight: bold;">
-            添加书签
-        </div>
         
         <!-- 动态生成的菜单项 -->
         <div id="menuContainer">
@@ -207,14 +207,6 @@
             // 初始化菜单
             initializeMenu();
             
-            // 添加书签功能
-            document.getElementById('bookmarkFeature').addEventListener('click', function() {
-                const bookmarkName = prompt('请输入书签名称:');
-                if (bookmarkName) {
-                    addMenuItem(bookmarkName, ['书签内容']);
-                }
-            });
-
             // 添加菜单功能
             document.getElementById('addMenuBtn')?.addEventListener('click', function() {
                 const menuName = prompt('请输入新菜单名称:');
@@ -264,7 +256,7 @@
         // 创建菜单项
         function createMenuItem(name, submenus) {
             const menuItem = document.createElement('div');
-            menuItem.className = 'menu-item expanded';
+            menuItem.className = 'menu-item';
             menuItem.innerHTML = name;
             
             // 创建子菜单容器
@@ -283,10 +275,8 @@
             
             // 绑定点击事件
             menuItem.addEventListener('click', function(e) {
-                // 阻止事件冒泡
-                if (e.target === menuItem) {
-                    this.classList.toggle('expanded');
-                }
+                // 切换展开/收起状态
+                this.classList.toggle('expanded');
             });
             
             return menuItem;
