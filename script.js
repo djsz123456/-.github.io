@@ -217,6 +217,16 @@ async function handleFileUpload(e) {
     // 检查是否选择了分类
     if (!currentCategory) {
         alert('请先从左侧菜单选择一个分类！');
+        // 添加视觉提示，闪烁未选择的分类提示
+        const fileListTitle = document.querySelector('#fileList h3');
+        if (fileListTitle) {
+            fileListTitle.style.color = 'red';
+            fileListTitle.style.fontWeight = 'bold';
+            setTimeout(() => {
+                fileListTitle.style.color = '';
+                fileListTitle.style.fontWeight = '';
+            }, 2000);
+        }
         return;
     }
     
