@@ -8,33 +8,28 @@ if (document.getElementById('loginForm')) {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         
-        try {
-            console.log('正在尝试登录到:', `${API_BASE_URL}/auth/login`);
-            const response = await fetch(`${API_BASE_URL}/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username, password })
-            });
-            
-            if (response.ok) {
-                const userData = await response.json();
-                const currentUser = { 
-                    username: userData.username, 
-                    isAdmin: userData.admin || false,
-                    id: userData.id
-                };
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                window.location.href = 'index.html';
-            } else {
-                const errorMsg = await response.text();
-                alert(errorMsg || '用户名或密码错误！');
-            }
-        } catch (error) {
-            console.error('登录请求失败:', error);
-            // 添加更多调试信息
-            alert('登录失败，请检查后端服务是否运行以及网络连接。\n错误详情: ' + error.message);
+        
+        // 简单的本地验证，用于演示目的
+        // 特殊的管理员账户
+        if (username === 'duojiesangzhou' && password === 'djsz823638gab') {
+            const currentUser = { 
+                username: username, 
+                isAdmin: true,
+                id: 1
+            };
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            window.location.href = 'index.html';
+        } else if (username && password) {
+            // 普通用户账户
+            const currentUser = { 
+                username: username, 
+                isAdmin: false,
+                id: Date.now() // 简单生成唯一ID
+            };
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            window.location.href = 'index.html';
+        } else {
+            alert('用户名或密码错误！');
         }
     });
 }
@@ -60,28 +55,14 @@ if (document.getElementById('registerForm')) {
             return;
         }
         
-        try {
-            console.log('正在尝试注册到:', `${API_BASE_URL}/auth/register`);
-            const response = await fetch(`${API_BASE_URL}/auth/register`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username, password, email })
-            });
-            
-            if (response.ok) {
-                alert('注册成功！');
-                // 注册成功后自动切换到登录标签
-                document.querySelector('.tablinks:first-child').click();
-            } else {
-                const errorMsg = await response.text();
-                alert(errorMsg || '注册失败');
-            }
-        } catch (error) {
-            console.error('注册请求失败:', error);
-            // 添加更多调试信息
-            alert('注册失败，请检查后端服务是否运行以及网络连接。\n错误详情: ' + error.message);
+        
+        // 本地注册逻辑，用于演示目的
+        if (username && password && email) {
+            alert('注册成功！');
+            // 注册成功后自动切换到登录标签
+            document.querySelector('.tablinks:first-child').click();
+        } else {
+            alert('请填写完整的注册信息');
         }
     });
 }
