@@ -1,308 +1,134 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>学习资料共享平台</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        /* 添加侧边栏样式 */
-        .sidebar {
-            width: 250px;
-            background-color: #333;
-            color: white;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            padding: 20px 0;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.3);
-            z-index: 1000;
-        }
+// 后端API基础URL
+const API_BASE_URL = 'http://localhost:8081/api';
 
-        .sidebar-header {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid #555;
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-
-        /* 修改菜单容器样式以支持滚动 */
-        #menuContainer {
-            max-height: calc(100vh - 150px);
-            overflow-y: auto;
-            scrollbar-width: none; /* Firefox */
-        }
-
-        #menuContainer::-webkit-scrollbar {
-            display: none; /* Chrome Safari */
-        }
-
-        .menu-item {
-            padding: 12px 20px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .menu-item:hover {
-            background-color: #555;
-        }
-
-        .menu-item.active {
-            background-color: #007bff;
-            font-weight: bold;
-        }
-
-        .submenu {
-            padding-left: 30px;
-            display: none;
-        }
-
-        .submenu-item {
-            padding: 8px 20px;
-            font-size: 0.9em;
-            color: #ccc;
-        }
-
-        .submenu-item:hover {
-            background-color: #555;
-        }
-
-        .expanded .submenu {
-            display: block;
-        }
-
-        .admin-controls {
-            padding: 20px;
-            border-top: 1px solid #555;
-            margin-top: 20px;
-        }
-
-        .admin-btn {
-            display: block;
-            width: 100%;
-            padding: 8px;
-            margin: 5px 0;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-
-        .admin-btn:hover {
-            background-color: #0056b3;
-        }
-
-        /* 调整主内容区域 */
-        main {
-            margin-left: 270px;
-        }
-
-        header {
-            margin-left: 250px;
-        }
-    </style>
-</head>
-<body>
-    <!-- 添加侧边栏 -->
-    <div class="sidebar">
-        <div class="sidebar-header">目录导航</div>
+// 处理登录
+if (document.getElementById('loginForm')) {
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
         
-        <!-- 动态生成的菜单项 -->
-        <div id="menuContainer">
-            <!-- 菜单项将通过JavaScript动态生成 -->
-        </div>
-
-        <!-- 管理员控制按钮 -->
-        <div class="admin-controls" id="adminControls" style="display: none;">
-            <button class="admin-btn" id="addMenuBtn">添加菜单</button>
-            <button class="admin-btn" id="deleteMenuBtn">删除菜单</button>
-        </div>
-    </div>
-
-    <header>
-        <h1>学习资料共享平台</h1>
-        <nav>
-            <button id="loginBtn">登录</button>
-            <button id="registerBtn">注册</button>
-            <button id="logoutBtn" style="display:none;">退出</button>
-            <span id="userInfo"></span>
-        </nav>
-    </header>
-
-    <main>
-        <section id="fileUploadSection" style="display:none;">
-            <h2>上传文件（仅管理员可见）</h2>
-            <form id="uploadForm">
-                <input type="file" id="fileInput" multiple>
-                <button type="submit">上传</button>
-            </form>
-        </section>
-
-        <section id="fileListSection">
-            <h2>学习资料列表</h2>
-            <div id="fileList">
-                <!-- 文件列表将通过JavaScript动态加载 -->
-            </div>
-        </section>
-    </main>
-
-    <!-- 登录模态框 -->
-    <div id="loginModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>用户登录</h2>
-            <form id="loginForm">
-                <label for="username">用户名:</label>
-                <input type="text" id="username" required>
-                <label for="password">密码:</label>
-                <input type="password" id="password" required>
-                <button type="submit">登录</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- 注册模态框 -->
-    <div id="registerModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>用户注册</h2>
-            <form id="registerForm">
-                <label for="regUsername">用户名:</label>
-                <input type="text" id="regUsername" required>
-                <label for="regPassword">密码:</label>
-                <input type="password" id="regPassword" required>
-                <button type="submit">注册</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- 删除确认模态框 -->
-    <div id="deleteModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>确认删除</h2>
-            <p>确定要删除这个文件吗？此操作不可恢复。</p>
-            <button id="confirmDeleteBtn">确认删除</button>
-            <button id="cancelDeleteBtn">取消</button>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
-    <script>
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            // 检查用户登录状态
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            if (!currentUser) {
-                // 如果未登录，跳转到登录页面
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            // 更新UI
-            updateUI();
-            
-            // 初始化菜单
-            initializeMenu();
-            
-            // 添加菜单功能
-            document.getElementById('addMenuBtn')?.addEventListener('click', function() {
-                const menuName = prompt('请输入新菜单名称:');
-                if (menuName) {
-                    addMenuItem(menuName, ['子菜单项']);
-                }
-            });
-
-            // 删除菜单功能
-            document.getElementById('deleteMenuBtn')?.addEventListener('click', function() {
-                removeLastMenuItem();
-            });
-        });
-        
-        // 初始化菜单
-        function initializeMenu() {
-            const menuContainer = document.getElementById('menuContainer');
-            if (!menuContainer) return;
-            
-            // 定义默认菜单项（只保留主菜单，删除所有子菜单）
-            const defaultMenus = [
-                { name: "数据结构", submenus: [] },
-                { name: "四级英语试卷", submenus: [] },
-                { name: "六级英语试卷", submenus: [] },
-                { name: "Java基础知识", submenus: [] },
-                { name: "Python基础知识", submenus: [] },
-                { name: "高考数学", submenus: [] },
-                { name: "高考物理", submenus: [] },
-                { name: "高考化学", submenus: [] },
-                { name: "高考语文", submenus: [] },
-                { name: "高考生物", submenus: [] },
-                { name: "高考英语", submenus: [] },
-                { name: "C++基础知识", submenus: [] },
-                { name: "C语言经典题型", submenus: [] }
-            ];
-            
-            // 清空容器
-            menuContainer.innerHTML = '';
-            
-            // 创建菜单项
-            defaultMenus.forEach(menu => {
-                const menuItem = createMenuItem(menu.name, menu.submenus);
-                menuContainer.appendChild(menuItem);
-            });
-        }
-        
-        // 创建菜单项
-        function createMenuItem(name, submenus) {
-            const menuItem = document.createElement('div');
-            menuItem.className = 'menu-item';
-            menuItem.innerHTML = name;
-            
-            // 创建子菜单容器
-            const submenu = document.createElement('div');
-            submenu.className = 'submenu';
-            
-            // 添加子菜单项
-            submenus.forEach(subName => {
-                const submenuItem = document.createElement('div');
-                submenuItem.className = 'submenu-item';
-                submenuItem.textContent = subName;
-                submenu.appendChild(submenuItem);
+        try {
+            console.log('正在尝试登录到:', `${API_BASE_URL}/auth/login`);
+            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
             });
             
-            menuItem.appendChild(submenu);
-            
-            // 绑定点击事件
-            menuItem.addEventListener('click', function(e) {
-                // 切换展开/收起状态
-                this.classList.toggle('expanded');
-            });
-            
-            return menuItem;
-        }
-        
-        // 添加新菜单项
-        function addMenuItem(name, submenus) {
-            const menuContainer = document.getElementById('menuContainer');
-            if (!menuContainer) return;
-            
-            const menuItem = createMenuItem(name, submenus);
-            menuContainer.appendChild(menuItem);
-        }
-        
-        // 删除最后一个菜单项
-        function removeLastMenuItem() {
-            const menuContainer = document.getElementById('menuContainer');
-            if (!menuContainer) return;
-            
-            const menuItems = menuContainer.querySelectorAll('.menu-item');
-            if (menuItems.length > 0) {
-                menuContainer.removeChild(menuItems[menuItems.length - 1]);
+            if (response.ok) {
+                const userData = await response.json();
+                const currentUser = { 
+                    username: userData.username, 
+                    isAdmin: userData.admin || false,
+                    id: userData.id
+                };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                window.location.href = 'index.html';
             } else {
-                alert('没有可删除的菜单项');
+                const errorMsg = await response.text();
+                alert(errorMsg || '用户名或密码错误！');
             }
+        } catch (error) {
+            console.error('登录请求失败:', error);
+            // 添加更多调试信息
+            alert('登录失败，请检查后端服务是否运行以及网络连接。\n错误详情: ' + error.message);
         }
-    </script>
-</body>
-</html>
+    });
+}
+
+// 处理注册
+if (document.getElementById('registerForm')) {
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('regUsername').value;
+        const password = document.getElementById('regPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const email = document.getElementById('regEmail').value;
+        
+        // 检查密码一致性
+        if (password !== confirmPassword) {
+            alert('两次输入的密码不一致！');
+            return;
+        }
+        
+        // 检查密码长度
+        if (password.length < 6) {
+            alert('密码长度不能少于 6 位');
+            return;
+        }
+        
+        try {
+            console.log('正在尝试注册到:', `${API_BASE_URL}/auth/register`);
+            const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password, email })
+            });
+            
+            if (response.ok) {
+                alert('注册成功！');
+                // 注册成功后自动切换到登录标签
+                document.querySelector('.tablinks:first-child').click();
+            } else {
+                const errorMsg = await response.text();
+                alert(errorMsg || '注册失败');
+            }
+        } catch (error) {
+            console.error('注册请求失败:', error);
+            // 添加更多调试信息
+            alert('注册失败，请检查后端服务是否运行以及网络连接。\n错误详情: ' + error.message);
+        }
+    });
+}
+
+// Tab切换功能
+function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].classList.remove("active");
+    }
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(tabName).classList.add("active");
+    evt.currentTarget.className += " active";
+}
+
+// 密码验证逻辑
+if (document.getElementById('regPassword')) {
+    document.getElementById('regPassword').addEventListener('input', validatePassword);
+}
+if (document.getElementById('confirmPassword')) {
+    document.getElementById('confirmPassword').addEventListener('input', validatePassword);
+}
+
+function validatePassword() {
+    const password = document.getElementById('regPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const errorDiv = document.getElementById('passwordError');
+    
+    // 检查密码长度
+    if (password.length < 6) {
+        errorDiv.textContent = '密码长度不能少于 6 位';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+    
+    // 检查密码一致性
+    if (confirmPassword && password !== confirmPassword) {
+        errorDiv.textContent = '两次输入的密码不一致';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+    
+    // 隐藏错误信息
+    errorDiv.style.display = 'none';
+    return true;
+}
