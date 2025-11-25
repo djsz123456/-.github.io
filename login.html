@@ -6,20 +6,43 @@
     <title>用户登录 - 学习资料共享平台</title>
     <link rel="stylesheet" href="styles.css">
     <style>
+        /* 星空宇宙背景样式 */
+        body {
+            background: #060e1b;
+            overflow: hidden;
+            position: relative;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
         .container {
             max-width: 400px;
             margin: 100px auto;
             padding: 20px;
-            background-color: white;
+            /* 删除:background-color: rgba(255, 255, 255, 0.1); */
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
+            background: transparent; /* 添加透明背景 */
         }
         
         .tab {
             overflow: hidden;
             border: 1px solid #ccc;
-            background-color: #f1f1f1;
+            /* 删除:background-color: rgba(241, 241, 241, 0.7); */
             border-radius: 5px 5px 0 0;
+            background-color: rgba(255, 255, 255, 0.1); /* 降低背景不透明度 */
         }
 
         .tab button {
@@ -34,11 +57,11 @@
         }
 
         .tab button:hover {
-            background-color: #ddd;
+            background-color: rgba(221, 221, 221, 0.3); /* 降低悬停效果不透明度 */
         }
 
         .tab button.active {
-            background-color: #007bff;
+            background-color: rgba(0, 123, 255, 0.5); /* 降低激活状态不透明度 */
             color: white;
         }
 
@@ -48,6 +71,8 @@
             border: 1px solid #ccc;
             border-top: none;
             border-radius: 0 0 5px 5px;
+            /* 删除:background-color: rgba(255, 255, 255, 0.7); */
+            background-color: rgba(255, 255, 255, 0.1); /* 降低内容区域不透明度 */
         }
 
         .tabcontent.active {
@@ -61,9 +86,45 @@
             margin-top: -10px;
             margin-bottom: 10px;
         }
+
+        /* 登录表单样式调整 */
+        form label {
+            color: #fff; /* 更改文字颜色以适应深色背景 */
+            text-shadow: 0 0 2px rgba(0,0,0,0.5); /* 添加文字阴影提高可读性 */
+        }
+
+        form input {
+            /* 删除:background-color: rgba(255, 255, 255, 0.8); */
+            background-color: rgba(255, 255, 255, 0.2); /* 降低输入框背景不透明度 */
+            color: white; /* 输入文字颜色设为白色 */
+            border: 1px solid rgba(255, 255, 255, 0.3); /* 边框更透明 */
+        }
+
+        form input::placeholder {
+            color: rgba(255, 255, 255, 0.7); /* 占位符文字颜色 */
+        }
+
+        h2 {
+            /* 删除:color: #333; */
+            color: #fff; /* 标题文字颜色改为白色 */
+            text-shadow: 0 0 2px rgba(0,0,0,0.5); /* 添加文字阴影提高可读性 */
+        }
+
+        button[type="submit"] {
+            background-color: rgba(0, 123, 255, 0.5); /* 按钮背景半透明 */
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        button[type="submit"]:hover {
+            background-color: rgba(0, 123, 255, 0.7); /* 悬停时增加不透明度 */
+        }
     </style>
 </head>
 <body>
+    <!-- 星空宇宙背景 -->
+    <canvas id="canvas"></canvas>
+
     <div class="container">
         <div class="tab">
             <button class="tablinks active" onclick="openTab(event, 'login')">登录</button>
@@ -151,5 +212,112 @@
         });
     </script>
     <script src="login-script.js"></script>
+    
+    <!-- 星空宇宙背景脚本 -->
+    <script>
+    "use strict";
+
+    var canvas = document.getElementById('canvas'),
+      ctx = canvas.getContext('2d'),
+      w = canvas.width = window.innerWidth,
+      h = canvas.height = window.innerHeight,
+        
+      hue = 217,
+      stars = [],
+      count = 0,
+      maxStars = 1400;
+
+    // Thanks @jackrugile for the performance tip! http://codepen.io/jackrugile/pen/BjBGoM
+    // Cache gradient
+    var canvas2 = document.createElement('canvas'),
+        ctx2 = canvas2.getContext('2d');
+        canvas2.width = 100;
+        canvas2.height = 100;
+    var half = canvas2.width/2,
+        gradient2 = ctx2.createRadialGradient(half, half, 0, half, half, half);
+        gradient2.addColorStop(0.025, '#fff');
+        gradient2.addColorStop(0.1, 'hsl(' + hue + ', 61%, 33%)');
+        gradient2.addColorStop(0.25, 'hsl(' + hue + ', 64%, 6%)');
+        gradient2.addColorStop(1, 'transparent');
+
+        ctx2.fillStyle = gradient2;
+        ctx2.beginPath();
+        ctx2.arc(half, half, half, 0, Math.PI * 2);
+        ctx2.fill();
+
+    // End cache
+
+    function random(min, max) {
+      if (arguments.length < 2) {
+        max = min;
+        min = 0;
+      }
+      
+      if (min > max) {
+        var hold = max;
+        max = min;
+        min = hold;
+      }
+
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    var Star = function() {
+
+      this.orbitRadius = random(w / 2 - 50);
+      this.radius = random(100, this.orbitRadius) / 10;
+      this.orbitX = w / 2;
+      this.orbitY = h / 2;
+      this.timePassed = random(0, maxStars);
+      this.speed = random(this.orbitRadius) / 900000;
+      this.alpha = random(2, 10) / 10;
+
+      count++;
+      stars[count] = this;
+    }
+
+    Star.prototype.draw = function() {
+      var x = Math.sin(this.timePassed + 1) * this.orbitRadius + this.orbitX,
+          y = Math.cos(this.timePassed) * this.orbitRadius/2 + this.orbitY,
+          twinkle = random(10);
+
+      if (twinkle === 1 && this.alpha > 0) {
+        this.alpha -= 0.05;
+      } else if (twinkle === 2 && this.alpha < 1) {
+        this.alpha += 0.05;
+      }
+
+      ctx.globalAlpha = this.alpha;
+        ctx.drawImage(canvas2, x - this.radius / 2, y - this.radius / 2, this.radius, this.radius);
+      this.timePassed += this.speed;
+    }
+
+    for (var i = 0; i < maxStars; i++) {
+      new Star();
+    }
+
+    function animation() {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 0.8;
+        ctx.fillStyle = 'hsla(' + hue + ', 64%, 6%, 1)';
+        ctx.fillRect(0, 0, w, h)
+      
+      ctx.globalCompositeOperation = 'lighter';
+      for (var i = 1, l = stars.length; i < l; i++) {
+        stars[i].draw();
+      };  
+      
+      window.requestAnimationFrame(animation);
+    }
+
+    animation();
+
+    // 窗口大小调整时更新画布尺寸
+    window.addEventListener('resize', function() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+    });
+    </script>
 </body>
 </html>
+
