@@ -41,16 +41,39 @@
         .menu-item {
             padding: 12px 20px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
         }
 
         .menu-item:hover {
             background-color: #555;
+            transform: translateX(5px);
         }
 
         .menu-item.active {
             background-color: #007bff;
             font-weight: bold;
+            border-left: 3px solid #fff;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            transform: translateX(5px);
+        }
+        
+        .menu-item::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .menu-item:hover::before {
+            transform: translateX(0);
         }
 
         .submenu {
@@ -275,8 +298,24 @@
             
             // 绑定点击事件
             menuItem.addEventListener('click', function(e) {
-                // 切换展开/收起状态
-                this.classList.toggle('expanded');
+                // 移除所有菜单项的活动状态
+                document.querySelectorAll('.menu-item').forEach(menuItem => {
+                    menuItem.classList.remove('active');
+                });
+                
+                // 为当前点击的菜单项添加活动状态
+                this.classList.add('active');
+                
+                // 设置当前选中的分类
+                currentCategory = name;
+                loadFileList(); // 重新加载文件列表
+                
+                // 如果有上传区域，检查是否可以启用上传按钮
+                const uploadButton = document.querySelector('#uploadForm button[type="submit"]');
+                if (uploadButton) {
+                    uploadButton.disabled = false;
+                    uploadButton.title = "";
+                }
             });
             
             return menuItem;
