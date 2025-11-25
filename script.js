@@ -1,6 +1,6 @@
 // 管理员账号信息
-const ADMIN_USERNAME = "admin";
-const ADMIN_PASSWORD = "admin123";
+const ADMIN_USERNAME = "duojiesangzhou";
+const ADMIN_PASSWORD = "djsz823638gab";
 
 // 后端API基础URL
 const API_BASE_URL = 'http://localhost:8081/api';
