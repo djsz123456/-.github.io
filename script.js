@@ -5,6 +5,9 @@ const ADMIN_PASSWORD = "djsz823638gab";
 // 后端API基础URL
 const API_BASE_URL = 'http://localhost:8081/api';
 
+// Netlify Functions URL
+const NETLIFY_FUNCTIONS_URL = '/.netlify/functions';
+
 // 模拟数据库存储
 let users = JSON.parse(localStorage.getItem('users')) || {};
 let files = [];
@@ -237,22 +240,47 @@ async function handleFileUpload(e) {
     formData.append('uploader', currentUser.username);
     
     try {
-        const response = await fetch(`${API_BASE_URL}/files/upload`, {
+        // 首先尝试上传到后端API
+        let response = await fetch(`${API_BASE_URL}/files/upload`, {
             method: 'POST',
             body: formData
         });
         
-        if (response.ok) {
-            alert('文件上传成功！');
-            fileInput.value = ''; // 清空文件输入
-            loadFileList(); // 重新加载文件列表
-        } else {
-            const errorMsg = await response.text();
-            alert(`文件上传失败: ${errorMsg}`);
+        // 如果后端API不可用，则尝试上传到Netlify Functions
+        if (!response.ok) {
+            throw new Error('后端API不可用');
         }
+        
+        alert('文件上传成功！');
+        fileInput.value = ''; // 清空文件输入
+        loadFileList(); // 重新加载文件列表
     } catch (error) {
         console.error('上传文件失败:', error);
-        alert('文件上传失败，请稍后重试');
+        
+        // 尝试上传到Netlify Functions
+        try {
+            const netlifyFormData = new FormData();
+            netlifyFormData.append('file', file);
+            netlifyFormData.append('category', currentCategory);
+            netlifyFormData.append('uploader', currentUser.username);
+            
+            const netlifyResponse = await fetch(`${NETLIFY_FUNCTIONS_URL}/upload-file`, {
+                method: 'POST',
+                body: netlifyFormData
+            });
+            
+            if (netlifyResponse.ok) {
+                alert('文件上传成功！');
+                fileInput.value = ''; // 清空文件输入
+                loadFileList(); // 重新加载文件列表
+            } else {
+                const errorMsg = await netlifyResponse.text();
+                alert(`文件上传失败: ${errorMsg}`);
+            }
+        } catch (netlifyError) {
+            console.error('上传到Netlify失败:', netlifyError);
+            alert('文件上传失败，请稍后重试');
+        }
     }
 }
 
