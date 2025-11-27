@@ -234,6 +234,7 @@ async function handleFileUpload(e) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('category', currentCategory);
+    formData.append('uploader', currentUser.username);
     
     try {
         const response = await fetch(`${API_BASE_URL}/files/upload`, {
