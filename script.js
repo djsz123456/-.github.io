@@ -3,7 +3,7 @@ const ADMIN_USERNAME = "duojiesangzhou";
 const ADMIN_PASSWORD = "djsz823638gab";
 
 // 后端API基础URL
-const API_BASE_URL = 'http://localhost:8081/api';
+const API_BASE_URL = 'https://api.github.com/gists';
 
 // Netlify Functions URL
 const NETLIFY_FUNCTIONS_URL = '/.netlify/functions';
