@@ -10,7 +10,7 @@ const NETLIFY_FUNCTIONS_URL = '/.netlify/functions';
 
 // 模拟数据库存储
 let users = JSON.parse(localStorage.getItem('users')) || {};
-let files = [];
+let files = JSON.parse(localStorage.getItem('files')) || [];
 let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
 // 添加菜单项与文件分类的映射
@@ -147,18 +147,11 @@ async function loadFileList() {
         return;
     }
     
-    try {
-        // 从后端获取指定分类的文件
-        const response = await fetch(`${API_BASE_URL}/files/category/${encodeURIComponent(currentCategory)}`);
-        if (response.ok) {
-            files = await response.json();
-        } else {
-            files = [];
-        }
-    } catch (error) {
-        console.error('获取文件列表失败:', error);
-        files = [];
-    }
+    // 从本地存储获取文件
+    files = JSON.parse(localStorage.getItem('files')) || [];
+    
+    // 过滤当前分类的文件
+    const categoryFiles = files.filter(file => file.category === currentCategory);
     
     fileList.innerHTML = '';
     
@@ -167,10 +160,10 @@ async function loadFileList() {
     categoryTitle.textContent = `${currentCategory} - 文件列表`;
     fileList.appendChild(categoryTitle);
     
-    if (files.length === 0) {
+    if (categoryFiles.length === 0) {
         fileList.innerHTML += '<p>该分类下暂无文件</p>';
     } else {
-        files.forEach(file => {
+        categoryFiles.forEach(file => {
             const fileItem = document.createElement('div');
             fileItem.className = 'file-item';
             fileItem.innerHTML = `
@@ -178,7 +171,7 @@ async function loadFileList() {
                     <h3>${file.name}</h3>
                     <p>大小: ${formatFileSize(file.size)} | 上传时间: ${new Date(file.uploadTime).toLocaleString()}</p>
                 </div>
-                <button class="download-btn" onclick="downloadFile(${file.id})">下载</button>
+                <button class="download-btn" onclick="downloadFile('${file.id}')">下载</button>
             `;
             fileList.appendChild(fileItem);
         });
@@ -234,72 +227,65 @@ async function handleFileUpload(e) {
     }
     
     const file = fileInput.files[0];
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('category', currentCategory);
-    formData.append('uploader', currentUser.username);
     
-    try {
-        // 首先尝试上传到后端API
-        let response = await fetch(`${API_BASE_URL}/files/upload`, {
-            method: 'POST',
-            body: formData
-        });
-        
-        // 如果后端API不可用，则尝试上传到Netlify Functions
-        if (!response.ok) {
-            throw new Error('后端API不可用');
-        }
-        
-        alert('文件上传成功！');
-        fileInput.value = ''; // 清空文件输入
-        loadFileList(); // 重新加载文件列表
-    } catch (error) {
-        console.error('上传文件失败:', error);
-        
-        // 尝试上传到Netlify Functions
-        try {
-            const netlifyFormData = new FormData();
-            netlifyFormData.append('file', file);
-            netlifyFormData.append('category', currentCategory);
-            netlifyFormData.append('uploader', currentUser.username);
-            
-            const netlifyResponse = await fetch(`${NETLIFY_FUNCTIONS_URL}/upload-file`, {
-                method: 'POST',
-                body: netlifyFormData
-            });
-            
-            if (netlifyResponse.ok) {
-                alert('文件上传成功！');
-                fileInput.value = ''; // 清空文件输入
-                loadFileList(); // 重新加载文件列表
-            } else {
-                const errorMsg = await netlifyResponse.text();
-                alert(`文件上传失败: ${errorMsg}`);
-            }
-        } catch (netlifyError) {
-            console.error('上传到Netlify失败:', netlifyError);
-            alert('文件上传失败，请稍后重试');
-        }
-    }
+    // 创建文件对象并保存到本地存储
+    const fileObject = {
+        id: Date.now().toString(),
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        category: currentCategory,
+        uploader: currentUser.username,
+        uploadTime: new Date().toISOString(),
+        content: await fileToBase64(file) // 将文件转换为base64存储
+    };
+    
+    // 获取现有的文件列表
+    let files = JSON.parse(localStorage.getItem('files')) || [];
+    files.push(fileObject);
+    
+    // 保存到本地存储
+    localStorage.setItem('files', JSON.stringify(files));
+    
+    alert('文件上传成功！');
+    fileInput.value = ''; // 清空文件输入
+    loadFileList(); // 重新加载文件列表
+}
+
+// 将文件转换为base64
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
 }
 
 // 下载文件
-async function downloadFile(fileId) {
+function downloadFile(fileId) {
     // 确保用户已登录才能下载文件
     if (!currentUser) {
         alert('请先登录再下载文件');
         return;
     }
     
-    try {
-        // 创建下载链接
-        const downloadUrl = `${API_BASE_URL}/files/download/${fileId}`;
-        window.open(downloadUrl, '_blank');
-    } catch (error) {
-        console.error('下载文件失败:', error);
-        alert('文件下载失败，请稍后重试');
+    // 从本地存储获取文件
+    const files = JSON.parse(localStorage.getItem('files')) || [];
+    const file = files.find(f => f.id === fileId);
+    
+    if (!file) {
+        alert('文件不存在');
+        return;
     }
+    
+    // 创建下载链接
+    const link = document.createElement('a');
+    link.href = file.content;
+    link.download = file.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 // 添加评论区功能
