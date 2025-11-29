@@ -15,11 +15,11 @@ let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
 // 添加菜单项与文件分类的映射
 let menuCategories = [
+    "java",
+    "四级英语",
+    "六级英语",
     "数据结构",
-    "四级英语试卷",
-    "六级英语试卷",
-    "Java基础知识",
-    "Python基础知识",
+    "Python",
     "高考数学",
     "高考物理",
     "高考化学",
