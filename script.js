@@ -171,7 +171,10 @@ async function loadFileList() {
                     <h3>${file.name}</h3>
                     <p>大小: ${formatFileSize(file.size)} | 上传时间: ${new Date(file.uploadTime).toLocaleString()}</p>
                 </div>
-                <button class="download-btn" onclick="downloadFile('${file.id}')">下载</button>
+                <div class="file-actions">
+                    <button class="preview-btn" onclick="previewFile('${file.id}')">在线预览</button>
+                    <button class="download-btn" onclick="downloadFile('${file.id}')">下载</button>
+                </div>
             `;
             fileList.appendChild(fileItem);
         });
@@ -386,4 +389,77 @@ function loadComments() {
         `;
         commentsList.appendChild(commentElement);
     });
+}
+
+// 添加预览功能函数
+function previewFile(fileId) {
+    // 从本地存储获取文件
+    const files = JSON.parse(localStorage.getItem('files')) || [];
+    const file = files.find(f => f.id === fileId);
+    
+    if (!file) {
+        alert('文件不存在');
+        return;
+    }
+    
+    // 创建预览模态框
+    let previewModal = document.getElementById('previewModal');
+    if (!previewModal) {
+        previewModal = document.createElement('div');
+        previewModal.id = 'previewModal';
+        previewModal.className = 'preview-modal';
+        previewModal.innerHTML = `
+            <div class="preview-content">
+                <div class="preview-header">
+                    <h3 class="preview-title">文件预览: ${file.name}</h3>
+                    <span class="close-preview">&times;</span>
+                </div>
+                <div id="previewBody"></div>
+            </div>
+        `;
+        document.body.appendChild(previewModal);
+        
+        // 绑定关闭事件
+        previewModal.querySelector('.close-preview').addEventListener('click', () => {
+            previewModal.style.display = 'none';
+        });
+        
+        previewModal.addEventListener('click', (e) => {
+            if (e.target === previewModal) {
+                previewModal.style.display = 'none';
+            }
+        });
+    } else {
+        previewModal.querySelector('.preview-title').textContent = `文件预览: ${file.name}`;
+    }
+    
+    const previewBody = previewModal.querySelector('#previewBody');
+    
+    // 根据文件类型进行预览
+    if (file.type.startsWith('image/')) {
+        // 图片文件预览
+        previewBody.innerHTML = `<img src="${file.content}" alt="${file.name}">`;
+    } else if (file.type === 'application/pdf') {
+        // PDF文件预览
+        previewBody.innerHTML = `<iframe src="${file.content}" title="${file.name}"></iframe>`;
+    } else if (file.type.startsWith('text/')) {
+        // 文本文件预览
+        try {
+            // 从base64解码文本内容
+            const base64Data = file.content.split(',')[1];
+            const decodedText = atob(base64Data);
+            previewBody.innerHTML = `<pre style="white-space: pre-wrap; word-wrap: break-word;">${decodedText}</pre>`;
+        } catch (e) {
+            previewBody.innerHTML = `<p>无法预览此文本文件。</p>`;
+        }
+    } else {
+        // 其他文件类型提供下载选项
+        previewBody.innerHTML = `
+            <p>此文件类型不支持在线预览。</p>
+            <button class="download-btn" onclick="downloadFile('${file.id}')">下载文件</button>
+        `;
+    }
+    
+    // 显示预览模态框
+    previewModal.style.display = 'block';
 }
