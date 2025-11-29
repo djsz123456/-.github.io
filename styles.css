@@ -135,6 +135,25 @@ h2 {
     background-color: #c82333;
 }
 
+/* 添加预览按钮样式 */
+.preview-btn {
+    padding: 5px 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 3px;
+    margin-right: 10px;
+}
+
+.preview-btn:hover {
+    background-color: #218838;
+}
+
+.file-actions {
+    display: flex;
+}
+
 /* 模态框样式 */
 .modal {
     display: none;
@@ -298,4 +317,62 @@ form button:hover {
     font-style: italic;
     text-align: center;
     padding: 20px;
+}
+
+/* 添加预览模态框样式 */
+.preview-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+}
+
+.preview-content {
+    margin: 5% auto;
+    padding: 20px;
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow: auto;
+    background-color: #fff;
+    border-radius: 5px;
+    position: relative;
+}
+
+.preview-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+.preview-content iframe {
+    width: 100%;
+    height: 70vh;
+    border: none;
+}
+
+.preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.close-preview {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-preview:hover {
+    color: black;
+}
+
+.preview-title {
+    margin: 0;
+    color: #333;
 }
